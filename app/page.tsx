@@ -1128,7 +1128,7 @@ export default function Home() {
     await runMatch(input);
   }
 
-  async function useExample(example: string) {
+  async function applyExample(example: string) {
     setInput(example);
     setTouched(true);
     await runMatch(example);
@@ -1166,7 +1166,7 @@ export default function Home() {
 
         <div className="examples" aria-label="示例输入">
           {examples.map((example) => (
-            <button key={example} type="button" onClick={() => useExample(example)}>
+            <button key={example} type="button" onClick={() => applyExample(example)}>
               {example}
             </button>
           ))}
