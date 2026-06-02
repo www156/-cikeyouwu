@@ -42,7 +42,7 @@ input {
 }
 
 .page-shell.result-mode {
-  grid-template-columns: minmax(14rem, 0.58fr) minmax(24rem, 1.05fr) minmax(22rem, 0.9fr);
+  grid-template-columns: minmax(14rem, 0.58fr) minmax(22rem, 1.05fr) minmax(21rem, 0.9fr);
   gap: clamp(1rem, 2.5vw, 2.8rem);
   height: 100vh;
   min-height: 0;
@@ -221,7 +221,7 @@ button:disabled {
 
 .result-mode .artifact-card {
   position: relative;
-  height: calc(100vh - clamp(3rem, 8vw, 8rem));
+  height: min(100%, calc(100vh - clamp(3rem, 8vw, 8rem)));
   max-height: 820px;
   min-height: 0;
   gap: clamp(1rem, 2vw, 1.8rem);
@@ -290,20 +290,21 @@ button:disabled {
 .curation-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
+  gap: 0.7rem;
   margin-top: auto;
-  padding-top: 1.1rem;
+  padding-top: 1.15rem;
   border-top: 1px solid var(--line);
 }
 
 .curation-actions button {
   width: auto;
-  min-height: 2.3rem;
+  min-height: 2.85rem;
   border-color: rgba(125, 45, 33, 0.28);
   background: rgba(255, 252, 246, 0.32);
   color: var(--lacquer);
-  padding: 0 0.72rem;
-  font-size: 0.88rem;
+  padding: 0.15rem 1.05rem;
+  font-size: clamp(0.94rem, 1vw, 1rem);
+  line-height: 1.35;
   transform: none;
 }
 
@@ -620,9 +621,8 @@ button:disabled {
 .image-frame {
   position: relative;
   display: grid;
-  height: calc(100vh - 120px);
-  max-height: 760px;
-  min-height: 360px;
+  height: min(78vh, 760px);
+  min-height: 0;
   place-items: center;
   overflow: hidden;
   padding: clamp(0.35rem, 1vw, 0.75rem);
@@ -832,6 +832,7 @@ blockquote {
 @media (max-width: 980px) {
   .page-shell {
     grid-template-columns: 1fr;
+    gap: 2rem;
   }
 
   .page-shell.result-mode {
@@ -863,8 +864,12 @@ blockquote {
     grid-template-columns: 1fr;
   }
 
+  .image-frame {
+    height: min(62vh, 620px);
+  }
+
   .image-frame img {
-    max-height: 54vh;
+    max-height: 100%;
   }
 
   .result-mode .artifact-copy {
@@ -878,9 +883,113 @@ blockquote {
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 768px) {
   .page-shell {
+    gap: 1.25rem;
     padding: 1rem;
+  }
+
+  .page-shell.result-mode {
+    display: grid;
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .result-mode .intro {
+    padding-top: 0;
+  }
+
+  h1 {
+    max-width: 10em;
+    font-size: clamp(2.35rem, 14vw, 3.4rem);
+    line-height: 1.04;
+  }
+
+  .result-mode h1 {
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+
+  .kicker {
+    margin-top: 1.25rem;
+  }
+
+  .lead,
+  .result-mode .lead {
+    font-size: 0.95rem;
+    line-height: 1.75;
+  }
+
+  .exhibition,
+  .result-mode .exhibition {
+    display: block;
+    height: auto;
+  }
+
+  .artifact-card,
+  .result-mode .artifact-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    height: auto;
+    max-height: none;
+    padding: 0.85rem;
+  }
+
+  .image-frame {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: auto;
+    padding: 0.55rem;
+  }
+
+  .image-frame::before {
+    inset: 0.65rem;
+  }
+
+  .image-frame img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: none;
+    object-fit: contain;
+  }
+
+  .result-mode .artifact-copy {
+    max-height: none;
+    overflow: visible;
+    padding: 0.35rem 0.15rem 0.15rem;
+  }
+
+  h2 {
+    font-size: clamp(1.9rem, 9vw, 2.7rem);
+  }
+
+  .curation-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .curation-actions button {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.35rem 0.9rem;
+    font-size: 1rem;
+  }
+
+  .curation-overlay {
+    position: fixed;
+    inset: 0;
+    padding: 0;
+  }
+
+  .overlay-card {
+    width: 92vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 1.2rem;
   }
 
   .input-row {
@@ -903,19 +1012,5 @@ blockquote {
 
   .civilization-cards {
     grid-template-columns: 1fr;
-  }
-
-  .artifact-card {
-    padding: 0.8rem;
-  }
-
-  .image-frame img {
-    width: 92%;
-    max-height: 46vh;
-  }
-
-  .overlay-card {
-    width: 100%;
-    max-height: calc(100vh - 2rem);
   }
 }
