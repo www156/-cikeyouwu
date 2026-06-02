@@ -503,6 +503,13 @@ button:disabled {
   color: var(--lacquer);
 }
 
+.poem-guide {
+  margin: 0.35rem 0 1rem;
+  color: rgba(92, 81, 70, 0.72);
+  font-size: 0.88rem;
+  line-height: 1.85;
+}
+
 .poem-card {
   border-left: 1px solid rgba(125, 45, 33, 0.48);
   padding-left: 1rem;

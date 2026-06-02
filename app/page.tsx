@@ -22,7 +22,7 @@ type MatchResult = {
   metCandidates: MetCandidate[];
 };
 
-type CurationTab = "why" | "civilization" | "poem";
+type CurationTab = "why" | "civilization" | "writing";
 
 type PoemState = {
   userText: string;
@@ -1117,7 +1117,7 @@ export default function Home() {
   function openCuration(tab: CurationTab) {
     setActiveTab(tab);
     setIsOverlayOpen(true);
-    if (tab === "poem" && result) {
+    if (tab === "writing" && result) {
       void fetchPoem(result);
     }
   }
@@ -1232,10 +1232,10 @@ export default function Home() {
                   </button>
                   <button
                     type="button"
-                    aria-expanded={isOverlayOpen && activeTab === "poem"}
-                    onClick={() => openCuration("poem")}
+                    aria-expanded={isOverlayOpen && activeTab === "writing"}
+                    onClick={() => openCuration("writing")}
                   >
-                    TA之前也样
+                    有人这样写过
                   </button>
               </div>
             </div>
@@ -1321,10 +1321,13 @@ export default function Home() {
                     </section>
                   ) : null}
 
-                  {activeTab === "poem" ? (
+                  {activeTab === "writing" ? (
                     <section className="tab-panel">
                       <p className="overlay-kicker">03</p>
-                      <h3>TA之前也样</h3>
+                      <h3>有人这样写过</h3>
+                      <p className="poem-guide">
+                        也许在很久以前，有人用另一种语言写下过与你此刻相近的心情。
+                      </p>
                     {poemState?.isLoading ? (
                       <div className="poem-loading">正在寻找一首相似的诗……</div>
                     ) : null}
