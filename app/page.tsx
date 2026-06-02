@@ -1335,9 +1335,13 @@ export default function Home() {
                     {poemState?.poem ? (
                       <article className="poem-card">
                         <section className="poem-section">
-                          <h4 className="poemChineseTitle">{poemState.poem.chinesePoem.title}</h4>
+                          <h4 className="poemChineseTitle">
+                            {poemState.poem.chinesePoem.title.replace(/[《》]/g, "")}
+                          </h4>
                           <p className="poem-author">{poemState.poem.chinesePoem.author}</p>
-                          <p className="poemChineseBody">{poemState.poem.chinesePoem.content}</p>
+                          <p className="poemChineseBody poemChinesePoemBody">
+                            {poemState.poem.chinesePoem.content}
+                          </p>
                           <p className="poemReason">{poemState.poem.chinesePoem.reason}</p>
                         </section>
 
