@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { coreArtifacts } from "../../data/artifacts";
+import { moderateUserText, moderationErrorResponse } from "../_utils/moderation";
 
 type PoemBody = {
   userText?: string;
@@ -37,50 +37,27 @@ type DeepseekResponse = {
   };
 };
 
-function scoreFallbackArtifact(body: PoemBody) {
-  const themes = body.themes || [];
-  const emotion = body.emotion || "";
-
-  return coreArtifacts
-    .map((artifact) => {
-      const themeScore = themes.filter((theme) => artifact.themes.includes(theme)).length * 4;
-      const emotionScore = artifact.emotionTags.some(
-        (tag) => emotion.includes(tag) || tag.includes(emotion)
-      )
-        ? 3
-        : 0;
-
-      return {
-        artifact,
-        score: themeScore + emotionScore
-      };
-    })
-    .sort((a, b) => b.score - a.score)[0]?.artifact;
-}
-
 function buildFallbackPoem(body: PoemBody): DualPoemResponse {
-  const artifact = scoreFallbackArtifact(body) || coreArtifacts[0];
-  const responseText = artifact.responseTemplate.replace(
-    "{emotion}",
-    body.emotion || "此刻的情绪"
-  );
+  const emotion = body.emotion || "此刻的情绪";
+  const themes = body.themes?.join("、") || "等待、此刻";
+  const responseText = `诗歌暂时没有抵达。你的${emotion}仍被留在这里，和「${themes}」一起，等下一次重新寻找。`;
 
   return {
     chinesePoem: {
       title: "本地策展回应",
-      author: artifact.name,
+      author: "此刻有物",
       content: responseText,
-      reason: "当诗暂时缺席，文物先替它说话。"
+      reason: "当诗暂时缺席，展签先为此刻留下一行字。"
     },
     englishPoem: {
       title: "Local Curatorial Note",
       titleCn: "本地策展回应",
-      author: artifact.name,
-      authorCn: artifact.name,
+      author: "Ci Ke You Wu",
+      authorCn: "此刻有物",
       content:
-        "When the poem cannot arrive, the artifact keeps speaking from the local archive.",
+        "When the poem cannot arrive, the note keeps a quiet place for this feeling.",
       translation: responseText,
-      reason: "在远方的诗抵达之前，此刻仍有一件物为你停留。"
+      reason: "在远方的诗抵达之前，此刻仍被轻轻放下。"
     }
   };
 }
@@ -120,6 +97,12 @@ function parseJson(text: string): DualPoemResponse | null {
 
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as PoemBody;
+  const moderation = await moderateUserText(body.userText || "");
+
+  if (!moderation.safe) {
+    return moderationErrorResponse(moderation);
+  }
+
   const fallbackPoem = buildFallbackPoem(body);
   const apiKey = process.env.DEEPSEEK_API_KEY;
   const randomSeed = body.randomSeed ?? `${Date.now()}-${Math.random()}`;
@@ -207,7 +190,7 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       return NextResponse.json({
         ...fallbackPoem,
-        error: data.error?.message || "Deepseek poem failed",
+        error: data.error?.message || "DeepSeek poem failed",
         fallback: true
       });
     }
@@ -216,7 +199,7 @@ export async function POST(request: NextRequest) {
     if (!parsed) {
       return NextResponse.json({
         ...fallbackPoem,
-        error: "Deepseek returned invalid poem JSON",
+        error: "DeepSeek returned invalid poem JSON",
         fallback: true
       });
     }
@@ -225,7 +208,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return NextResponse.json({
       ...fallbackPoem,
-      error: error instanceof Error ? error.message : "Deepseek poem failed",
+      error: error instanceof Error ? error.message : "DeepSeek poem failed",
       fallback: true
     });
   }

@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { Artifact, artifacts } from "./data/artifacts";
 
 type UserAnalysis = {
   emotion: string;
@@ -11,13 +10,25 @@ type UserAnalysis = {
   source: "deepseek" | "fallback";
 };
 
+type Artifact = {
+  id: string;
+  name: string;
+  period: string;
+  material: string;
+  cultureRegion: string;
+  image: string;
+  sourceUrl: string;
+  story: string;
+  responseTemplate: string;
+  reason: string;
+  westernCandidate: string;
+};
+
 type MatchResult = {
   userInput: string;
   analysis: UserAnalysis;
   artifact: Artifact;
-  score: number;
   response: string;
-  responseSource: "deepseek" | "fallback";
   metCandidate: MetCandidate | null;
   metCandidates: MetCandidate[];
 };
@@ -67,7 +78,6 @@ type CivilizationCandidate = {
   name: string;
   englishName?: string;
   cultureRegion: string;
-  currentLocation?: string;
   period: string;
   material: string;
   reason: string;
@@ -77,12 +87,6 @@ type CivilizationCandidate = {
 type MetCandidateResult = {
   selected: MetCandidate;
   candidates: MetCandidate[];
-};
-
-type CrossCivilizationArtifact = CivilizationCandidate & {
-  themes: string[];
-  emotionTags: string[];
-  searchKeywords: string[];
 };
 
 type MetSearchResponse = {
@@ -115,126 +119,6 @@ type MetTranslation = {
   responseTemplateZh: string;
   fallback?: boolean;
 };
-
-const crossCivilizationArtifacts: CrossCivilizationArtifact[] = [
-  {
-    label: "古希腊文明",
-    name: "胜利女神尼刻像",
-    cultureRegion: "古希腊",
-    currentLocation: "卢浮宫",
-    period: "约公元前190年",
-    material: "帕罗斯大理石",
-    themes: ["胜利", "庆祝", "荣耀", "自由", "远行", "成就"],
-    emotionTags: ["喜悦", "期待", "兴奋", "自豪"],
-    searchKeywords: ["victory", "nike", "glory", "celebration"],
-    reason: "它以迎风展开的姿态回应胜利、荣耀与抵达后的高处时刻。",
-    sourceUrl: "https://en.wikipedia.org/wiki/Winged_Victory_of_Samothrace"
-  },
-  {
-    label: "古希腊文明",
-    name: "德尔斐青铜御者",
-    cultureRegion: "古希腊",
-    currentLocation: "德尔斐考古博物馆",
-    period: "约公元前470年",
-    material: "青铜",
-    themes: ["方向", "秩序", "胜利", "克制", "责任"],
-    emotionTags: ["迷茫", "平静", "期待", "不确定"],
-    searchKeywords: ["charioteer", "delphi", "victory", "order"],
-    reason: "它把胜利之后的克制保存下来，适合回应寻找方向与保持秩序的心境。",
-    sourceUrl: "https://en.wikipedia.org/wiki/Charioteer_of_Delphi"
-  },
-  {
-    label: "古希腊文明",
-    name: "白底送别陶瓶",
-    cultureRegion: "古希腊",
-    currentLocation: "大都会艺术博物馆等机构藏有同类器物",
-    period: "约公元前5世纪",
-    material: "陶土、白底彩绘",
-    themes: ["离别", "死亡", "等待", "时间", "关系"],
-    emotionTags: ["悲伤", "怀念", "不舍", "平静"],
-    searchKeywords: ["lekythos", "parting", "funerary", "memory"],
-    reason: "白底陶瓶常与送别和纪念有关，能回应离别、等待与仍未放下的关系。",
-    sourceUrl: "https://en.wikipedia.org/wiki/White-ground_technique"
-  },
-  {
-    label: "日本文明",
-    name: "志野茶碗",
-    cultureRegion: "日本",
-    currentLocation: "东京国立博物馆等机构藏有同类器物",
-    period: "桃山时代",
-    material: "陶器、釉",
-    themes: ["等待", "修复", "平静", "失败", "重生"],
-    emotionTags: ["疲惫", "平静", "不安", "自我怀疑"],
-    searchKeywords: ["shino", "tea bowl", "quiet", "repair"],
-    reason: "茶碗以手作痕迹和不完美回应等待、修复与自我安放。",
-    sourceUrl: "https://en.wikipedia.org/wiki/Shino_ware"
-  },
-  {
-    label: "日本文明",
-    name: "曜变天目茶碗",
-    cultureRegion: "日本",
-    currentLocation: "静嘉堂文库美术馆",
-    period: "南宋，传入日本后收藏",
-    material: "陶瓷、铁釉",
-    themes: ["梦想", "惊讶", "创造", "宇宙", "启示"],
-    emotionTags: ["惊讶", "期待", "喜悦", "敬畏"],
-    searchKeywords: ["tenmoku", "tea bowl", "stars", "wonder"],
-    reason: "它在一只碗中显出星空般的光斑，适合回应惊讶、梦想与创造的瞬间。",
-    sourceUrl: "https://en.wikipedia.org/wiki/Tenmoku"
-  },
-  {
-    label: "日本文明",
-    name: "短册和歌",
-    cultureRegion: "日本",
-    currentLocation: "东京国立博物馆等机构藏有同类作品",
-    period: "江户时代及更早传统",
-    material: "纸本墨书",
-    themes: ["离别", "关系", "时间", "等待", "书信"],
-    emotionTags: ["悲伤", "怀念", "温柔", "孤独"],
-    searchKeywords: ["waka", "poem card", "letter", "parting"],
-    reason: "短册把难以直说的情感收进窄长纸面，适合回应离别与等待。",
-    sourceUrl: "https://en.wikipedia.org/wiki/Tanzaku"
-  },
-  {
-    label: "古埃及文明",
-    name: "阿尼纸草书",
-    cultureRegion: "古埃及",
-    currentLocation: "大英博物馆",
-    period: "约公元前1250年",
-    material: "纸草、颜料",
-    themes: ["死亡", "秩序", "审判", "重生", "时间"],
-    emotionTags: ["恐惧", "悲伤", "反思", "不安"],
-    searchKeywords: ["book of the dead", "judgement", "afterlife", "order"],
-    reason: "它把死亡后的审判与复归画成秩序，适合回应恐惧、反思与终点意识。",
-    sourceUrl: "https://en.wikipedia.org/wiki/Papyrus_of_Ani"
-  },
-  {
-    label: "古埃及文明",
-    name: "图坦卡蒙黄金面具",
-    cultureRegion: "古埃及",
-    currentLocation: "埃及博物馆",
-    period: "约公元前1323年",
-    material: "黄金、玻璃、宝石",
-    themes: ["死亡", "重生", "荣耀", "秩序", "责任"],
-    emotionTags: ["恐惧", "悲伤", "敬畏", "平静"],
-    searchKeywords: ["mask", "gold", "afterlife", "king"],
-    reason: "面具以黄金保存面容，也保存人对死亡、荣耀与复归的想象。",
-    sourceUrl: "https://en.wikipedia.org/wiki/Mask_of_Tutankhamun"
-  },
-  {
-    label: "古埃及文明",
-    name: "圣甲虫护符",
-    cultureRegion: "古埃及",
-    currentLocation: "大都会艺术博物馆等机构藏有同类器物",
-    period: "新王国时期及以后",
-    material: "釉陶、石、宝石等",
-    themes: ["重生", "改变", "未来", "守护", "开始"],
-    emotionTags: ["期待", "恐惧", "不安", "想改变但不确定"],
-    searchKeywords: ["scarab", "amulet", "rebirth", "protection"],
-    reason: "圣甲虫象征日复一日的更新，适合回应想改变却仍不确定的时刻。",
-    sourceUrl: "https://en.wikipedia.org/wiki/Scarab_artifact"
-  }
-];
 
 const defaultExample = "我很迷茫";
 
@@ -315,18 +199,6 @@ function countTextHits(text: string, terms: string[]) {
   const normalized = normalize(text);
   return terms.reduce((score, term) => {
     return normalized.includes(normalize(term)) ? score + 1 : score;
-  }, 0);
-}
-
-function overlapScore(source: string[], target: string[]) {
-  const normalizedTarget = target.map(normalize);
-  return source.reduce((score, item) => {
-    const normalizedItem = normalize(item);
-    return normalizedTarget.some(
-      (targetItem) => targetItem.includes(normalizedItem) || normalizedItem.includes(targetItem)
-    )
-      ? score + 1
-      : score;
   }, 0);
 }
 
@@ -552,15 +424,21 @@ async function analyzeWithDeepseek(userText: string): Promise<UserAnalysis> {
     body: JSON.stringify({ userText })
   });
 
-  if (!response.ok) {
-    throw new Error("Deepseek analyze unavailable");
-  }
-
   const data = (await response.json()) as {
     emotion?: string;
     themes?: string[];
     explanation?: string;
+    error?: string;
   };
+
+  if (!response.ok) {
+    const error = new Error(data.error || "Deepseek analyze unavailable");
+    if (response.status === 400) {
+      (error as Error & { stopMatch?: boolean }).stopMatch = true;
+    }
+    throw error;
+  }
+
   const themes = data.themes?.filter(Boolean).slice(0, 6) || ["此刻", "等待", "显影"];
 
   return {
@@ -570,38 +448,6 @@ async function analyzeWithDeepseek(userText: string): Promise<UserAnalysis> {
     explanation: data.explanation || "Deepseek API 完成了情绪与文明主题分析。",
     source: "deepseek"
   };
-}
-
-function scoreArtifact(userAnalysis: UserAnalysis, artifact: Artifact) {
-  let score = 0;
-
-  score += overlapScore(userAnalysis.themes, artifact.themeTags) * 5;
-  score += overlapScore(userAnalysis.searchKeywords, artifact.searchKeywords) * 4;
-  score += countTextHits(userAnalysis.emotion, artifact.emotionTags) * 4;
-  score += overlapScore(userAnalysis.themes, artifact.themes) * 2;
-  score += countTextHits(userAnalysis.explanation, artifact.keywords);
-
-  return score;
-}
-
-function chooseLocalArtifact(userAnalysis: UserAnalysis, userText: string) {
-  const ranked = artifacts
-    .map((artifact) => ({ artifact, score: scoreArtifact(userAnalysis, artifact) }))
-    .sort((a, b) => b.score - a.score);
-
-  if (ranked[0].score <= 0) {
-    const seed = Array.from(userText).reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    return {
-      artifact: artifacts[seed % artifacts.length],
-      score: 0
-    };
-  }
-
-  const topScore = ranked[0].score;
-  const tied = ranked.filter((item) => item.score === topScore);
-  const seed = Array.from(userText).reduce((sum, char) => sum + char.charCodeAt(0), 0);
-
-  return tied[seed % tied.length];
 }
 
 function buildResponse(artifact: Artifact, analysis: UserAnalysis) {
@@ -802,32 +648,14 @@ function buildMetArtifact(met: MetCandidate, analysis: UserAnalysis): Artifact {
     period: translated?.dateZh || met.objectDate,
     material: translated?.mediumZh || met.medium,
     cultureRegion: translated?.cultureZh || translateMetCulture(met.culture),
-    currentLocation: "大都会艺术博物馆",
     image: met.primaryImage || met.primaryImageSmall,
     sourceUrl,
-    dataSource: "Met API",
-    themes,
-    emotionTags: [analysis.emotion],
-    searchKeywords: analysis.searchKeywords,
     story,
-    firstPersonView: `从我的年代向外望去，${themes.join("、")}像一束被重新点亮的展厅光线。`,
     responseTemplate:
       translated?.responseTemplateZh ||
       `我是一件由${translated?.mediumZh || met.medium}制成的文物，记录年代是${translated?.dateZh || met.objectDate}。过去，我可能服务于生活、仪式或纪念场景。你现在的{emotion}并不罕见，人们一直会把重要的感受放进器物、图像和材料里。`,
     reason,
-    dynasty: met.objectDate,
-    origin: "大都会艺术博物馆",
-    imageCredit: "图片来源：MET 开放馆藏",
-    keywords: [...themes, analysis.emotion, ...analysis.searchKeywords],
-    themeTags: themes,
-    prompt:
-      "A quiet museum exhibition view, artifact memory, poetic curatorial atmosphere",
-    historyStory: story,
-    matchReason: reason,
     westernCandidate: titleEn,
-    westernCandidateReason: "由大都会开放馆藏接口根据当前情绪主题关键词返回的文物。",
-    finalChoiceReason: reason,
-    response: ""
   };
 }
 
@@ -947,53 +775,6 @@ function buildCuratorialReason(result: MatchResult) {
   return `你的想法里有一种${emotion}。它靠近「${themes}」，像是一种正在成形、还需要被轻轻安放的当下感受。`;
 }
 
-function scoreCivilizationArtifact(analysis: UserAnalysis, candidate: CrossCivilizationArtifact) {
-  let score = 0;
-
-  score += overlapScore(analysis.themes, candidate.themes) * 5;
-  score += overlapScore(analysis.searchKeywords, candidate.searchKeywords) * 4;
-  score += countTextHits(analysis.emotion, candidate.emotionTags) * 4;
-  score += countTextHits(analysis.explanation, candidate.themes) * 2;
-  score += countTextHits(analysis.explanation, candidate.searchKeywords);
-
-  return score;
-}
-
-function buildMetCivilizationCandidate(result: MatchResult): CrossCivilizationArtifact | null {
-  const met = result.metCandidate;
-
-  if (!met) {
-    return null;
-  }
-
-  const culture = met.culture.toLowerCase();
-  const label = culture.includes("greek")
-    ? "古希腊文明"
-    : culture.includes("egypt")
-      ? "古埃及文明"
-      : culture.includes("japan")
-        ? "日本文明"
-        : null;
-
-  if (!label) {
-    return null;
-  }
-
-  return {
-    label,
-    name: met.title,
-    cultureRegion: met.culture,
-    currentLocation: "大都会艺术博物馆",
-    period: met.objectDate,
-    material: met.medium,
-    themes: result.analysis.themes,
-    emotionTags: [result.analysis.emotion],
-    searchKeywords: result.analysis.searchKeywords,
-    reason: `大都会开放馆藏接口根据「${result.analysis.themes.join("、")}」找到的候选。`,
-    sourceUrl: met.objectURL
-  };
-}
-
 function buildDynamicCivilizationCandidates(result: MatchResult): CivilizationCandidate[] {
   return buildMetCivilizationCards(result);
 }
@@ -1004,16 +785,22 @@ async function buildMatch(input: string): Promise<MatchResult> {
 
   try {
     analysis = await analyzeWithDeepseek(userInput);
-  } catch {
+  } catch (error) {
+    if ((error as Error & { stopMatch?: boolean }).stopMatch) {
+      throw error;
+    }
     analysis = analyzeUserInput(userInput);
   }
 
   const metResult = await fetchMetCandidate(analysis);
   const metCandidate = metResult?.selected ?? null;
   const metCandidates = metResult?.candidates ?? [];
-  if (metCandidate) {
-    metCandidate.translation = await translateMetCandidate(metCandidate, analysis, userInput) || undefined;
+
+  if (!metCandidate) {
+    throw new Error("此刻没有找到合适的馆藏，请换一种说法再试。");
   }
+
+  metCandidate.translation = await translateMetCandidate(metCandidate, analysis, userInput) || undefined;
   const civilizationMetCandidates = pickCivilizationMetCandidates(metCandidates, metCandidate);
   await Promise.all(
     civilizationMetCandidates.map(async (candidate) => {
@@ -1021,18 +808,14 @@ async function buildMatch(input: string): Promise<MatchResult> {
         candidate.translation || (await translateMetCandidate(candidate, analysis, userInput)) || undefined;
     })
   );
-  const localMatch = chooseLocalArtifact(analysis, userInput);
-  const artifact = metCandidate ? buildMetArtifact(metCandidate, analysis) : localMatch.artifact;
-  const score = metCandidate ? metCandidate.relevanceScore : localMatch.score;
-  const { response, responseSource } = await generateArtifactResponse(userInput, analysis, artifact);
+  const artifact = buildMetArtifact(metCandidate, analysis);
+  const { response } = await generateArtifactResponse(userInput, analysis, artifact);
 
   return {
     userInput,
     analysis,
     artifact,
-    score,
     response,
-    responseSource,
     metCandidate,
     metCandidates
   };
@@ -1046,6 +829,7 @@ export default function Home() {
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
   const [isMatching, setIsMatching] = useState(false);
   const [poemState, setPoemState] = useState<PoemState | null>(null);
+  const [matchError, setMatchError] = useState<string | null>(null);
 
   const examples = useMemo(
     () => ["我很迷茫", "我做了一个可能是错的决定", "我最近很累", "我想开始改变"],
@@ -1054,11 +838,19 @@ export default function Home() {
 
   async function runMatch(value: string) {
     setIsMatching(true);
+    setMatchError(null);
     setActiveTab("why");
     setIsOverlayOpen(false);
     setPoemState(null);
-    setResult(await buildMatch(value));
-    setIsMatching(false);
+
+    try {
+      setResult(await buildMatch(value));
+    } catch (error) {
+      setResult(null);
+      setMatchError(error instanceof Error ? error.message : "请求失败，请稍后再试。");
+    } finally {
+      setIsMatching(false);
+    }
   }
 
   async function fetchPoem(currentResult: MatchResult) {
@@ -1162,6 +954,7 @@ export default function Home() {
             </button>
           </div>
           {touched && !input.trim() ? <p className="hint">已使用默认示例进行匹配。</p> : null}
+          {matchError ? <p className="hint">{matchError}</p> : null}
         </form>
 
         <div className="examples" aria-label="示例输入">
@@ -1182,9 +975,7 @@ export default function Home() {
             <div className="artifact-copy">
               <p className="label">匹配文物</p>
               <h2>{selected.name}</h2>
-              {selected.dataSource === "Met API" ? (
-                <p className="artifact-original-title">{selected.westernCandidate}</p>
-              ) : null}
+              <p className="artifact-original-title">{selected.westernCandidate}</p>
               <dl>
                 <div>
                   <dt>文化</dt>
@@ -1202,7 +993,7 @@ export default function Home() {
                   <dt>来源链接</dt>
                   <dd>
                     <a href={selected.sourceUrl} target="_blank" rel="noreferrer">
-                      {selected.dataSource === "Wikipedia" ? "查看维基百科" : "查看来源页面"}
+                      查看来源页面
                     </a>
                   </dd>
                 </div>

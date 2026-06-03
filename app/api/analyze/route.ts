@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { moderateUserText, moderationErrorResponse } from "../_utils/moderation";
 
 type AnalyzeBody = {
   userText?: string;
@@ -34,7 +35,7 @@ function parseJson(text: string): AnalyzeResult | null {
       themes: Array.isArray(parsed.themes)
         ? parsed.themes.filter(Boolean).map(String).slice(0, 6)
         : ["此刻", "等待", "显影"],
-      explanation: parsed.explanation || "Deepseek API 完成了情绪与文明主题分析。"
+      explanation: parsed.explanation || "DeepSeek API 完成了情绪与文明主题分析。"
     };
   } catch {
     return null;
@@ -42,6 +43,14 @@ function parseJson(text: string): AnalyzeResult | null {
 }
 
 export async function POST(request: NextRequest) {
+  const body = (await request.json()) as AnalyzeBody;
+  const userText = body.userText?.trim() || "我很迷茫";
+  const moderation = await moderateUserText(userText);
+
+  if (!moderation.safe) {
+    return moderationErrorResponse(moderation);
+  }
+
   const apiKey = process.env.DEEPSEEK_API_KEY;
 
   if (!apiKey) {
@@ -53,9 +62,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-
-  const body = (await request.json()) as AnalyzeBody;
-  const userText = body.userText?.trim() || "我很迷茫";
 
   try {
     const response = await fetch("https://api.deepseek.com/chat/completions", {
@@ -78,9 +84,7 @@ export async function POST(request: NextRequest) {
             content: `用户输入：${userText}
 
 请识别用户情绪，并提取适合文物匹配的文明主题。
-
-主题优先从这些方向选择或短语化改写：
-喜悦、悲伤、愤怒、平静、惊讶、恐惧、期待、成长、等待、改变、关系、责任、梦想、失败、重生、过去、现在、未来、远行、秩序、自由、创造、胜利、庆祝、成就、探索、学习、死亡、反思、启示、超越。
+主题优先从这些方向选择或短语化改写：喜悦、悲伤、愤怒、平静、惊讶、恐惧、期待、成长、等待、改变、关系、责任、梦想、失败、重生、过去、现在、未来、远行、秩序、自由、创造、胜利、庆祝、成就、探索、学习、死亡、反思、启示、超越。
 
 返回格式：
 {
@@ -97,20 +101,20 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       return NextResponse.json(
-        { error: data.error?.message || "Deepseek analyze failed" },
+        { error: data.error?.message || "DeepSeek analyze failed" },
         { status: response.status }
       );
     }
 
     const parsed = parseJson(data.choices?.[0]?.message?.content || "");
     if (!parsed) {
-      return NextResponse.json({ error: "Unable to parse Deepseek response" }, { status: 502 });
+      return NextResponse.json({ error: "Unable to parse DeepSeek response" }, { status: 502 });
     }
 
     return NextResponse.json(parsed);
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Deepseek analyze failed" },
+      { error: error instanceof Error ? error.message : "DeepSeek analyze failed" },
       { status: 500 }
     );
   }

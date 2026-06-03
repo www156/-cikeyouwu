@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { moderateUserText, moderationErrorResponse } from "../_utils/moderation";
 
 type RespondBody = {
   userText?: string;
@@ -24,6 +25,13 @@ type DeepseekResponse = {
 };
 
 export async function POST(request: NextRequest) {
+  const body = (await request.json()) as RespondBody;
+  const moderation = await moderateUserText(body.userText || "");
+
+  if (!moderation.safe) {
+    return moderationErrorResponse(moderation);
+  }
+
   const apiKey = process.env.DEEPSEEK_API_KEY;
 
   if (!apiKey) {
@@ -36,7 +44,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = (await request.json()) as RespondBody;
   const artifact = body.artifact || {};
   const fallback =
     artifact.responseTemplate?.replace("{emotion}", body.emotion || "当下情绪") || "";
@@ -87,7 +94,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           response: fallback,
-          error: data.error?.message || "Deepseek respond failed",
+          error: data.error?.message || "DeepSeek respond failed",
           fallback: true
         },
         { status: response.status }
@@ -97,7 +104,7 @@ export async function POST(request: NextRequest) {
     const text = data.choices?.[0]?.message?.content?.trim();
     if (!text) {
       return NextResponse.json(
-        { response: fallback, error: "Deepseek returned empty response", fallback: true },
+        { response: fallback, error: "DeepSeek returned empty response", fallback: true },
         { status: 502 }
       );
     }
@@ -107,7 +114,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         response: fallback,
-        error: error instanceof Error ? error.message : "Deepseek respond failed",
+        error: error instanceof Error ? error.message : "DeepSeek respond failed",
         fallback: true
       },
       { status: 500 }
